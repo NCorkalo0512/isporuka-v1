@@ -1,0 +1,46 @@
+﻿@model InsurancePartnersManagment.Models.Partner
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>@Model.FullName</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.PartnerNumber)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.PartnerNumber)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PartnerTypeId)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.PartnerTypeId)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.IsForeign)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.IsForeign)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Gender)
+        </dt>
+        <dd>
+            @Html.DisplayFor(model => model.Gender)
+        </dd>
+
+    </dl>
+</div>
+<p>
+    @Html.ActionLink("Edit", "Edit", new {  id = Model.IdPartner }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>

@@ -1,0 +1,182 @@
+﻿@using InsurancePartnersManagment.Models
+@model InsurancePartnersManagment.Models.PartnersViewModel
+
+@{ ViewBag.Title = "Home";
+    var createdPartnerId = TempData["CreatedPartnerId"] as int?;
+}
+
+
+<a href="@Url.Action("Create", "Partners")" class="btn btn-primary">Add new partner</a>
+<button type="button" class="btn btn-success" data-toggle="modal" data-target="#policyModal">
+    Entry of partner's policy
+</button>
+
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Full name</th>
+            <th>Partner number</th>
+            <th>Partner type</th>
+            <th>Is foreign</th>
+            <th>Gender</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var partner in Model.Partners)
+        {
+            <tr class="@(partner.IdPartner == createdPartnerId ? "highlight" : "")">
+                <td>@partner.FullName</td>
+                <td>@partner.PartnerNumber</td>
+                <td>@partner.PartnerTypeId</td>
+                <td>@partner.IsForeign</td>
+                <td>@partner.Gender</td>
+                <td>
+                    <button data-id="@partner.IdPartner" class="btn btn-info btn-detail" data-toggle="modal" data-target="#detailsModal">Details</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2 class="mt-4 mb-3">Partners with Policy Details</h2>
+
+<div class="row">
+    @foreach (var partnerInfo in Model.PartnerPolicyInfos)
+    {
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 @(partnerInfo.PolicyCount > 5 || partnerInfo.TotalAmount > 5000 ? "border-danger" : "border-light")">
+                <div class="card-body">
+                    <h5 class="card-title">@partnerInfo.FirstName @partnerInfo.LastName</h5>
+                    <h6 class="card-subtitle mb-2 text-muted">@partnerInfo.PolicyCount policies</h6>
+                    <p class="card-text">Total Policy Amount: @partnerInfo.TotalAmount</p>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">Last updated 3 mins ago</small>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="modal fade" id="detailsModal" tabindex="-1" aria-labelledby="detailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="detailsModalLabel">Partner details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="policyModal" tabindex="-1" aria-labelledby="policyModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="policyModalLabel">Entry of Partner's Policy</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form id="policyForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="partnerId">Partner ID</label>
+                        <input type="text" class="form-control" id="partnerId" name="partnerId" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="policyNumber">Policy Number</label>
+                        <input type="text" class="form-control" id="policyNumber" name="policyNumber" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="amount">Amount</label>
+                        <input type="number" class="form-control" id="amount" name="amount" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Save Policy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+<script>
+    $(document).on('click', '.btn-detail', function () {
+        var partnerId = $(this).data('id');
+        $.ajax({
+            url: '/Partners/Details/' + partnerId,
+            method: 'GET',
+            success: function (data) {
+                var detailsHtml = '<p>Full Name: ' + data.FullName + '</p>';
+                detailsHtml += '<p>Address: ' + data.Address + '</p>';
+                detailsHtml += '<p>Partner Number: ' + data.PartnerNumber + '</p>';
+                detailsHtml += '<p>Partner Type ID: ' + data.PartnerTypeId + '</p>';
+                detailsHtml += '<p>Is Foreign: ' + data.IsForeign + '</p>';
+                detailsHtml += '<p>Gender: ' + data.Gender + '</p>';
+                detailsHtml += '<p>Created By: ' + data.CreatedBy + '</p>';
+
+                $('#detailsModal .modal-body').html(detailsHtml);
+            },
+            error: function (xhr, status, error) {
+                $('#detailsModal .modal-body').html('<p>Error loading details. Please try again later.</p>');
+            }
+        });
+    });
+</script>
+<script>
+    $(document).ready(function () {
+        $('#policyForm').submit(function (event) {
+            event.preventDefault();        
+            var partnerId = $('#partnerId').val();
+            var policyNumber = $('#policyNumber').val();
+            var amount = $('#amount').val();
+            $.ajax({
+                url: '/Policy/Create', 
+                method: 'POST',
+                data: {
+                    partnerId: partnerId,
+                    policyNumber: policyNumber,
+                    amount: amount
+                },
+                success: function (data) {
+                    var partnerId = data.partnerId; 
+
+                    
+                    var partnerCard = $('.row').find('[data-partner-id="' + partnerId + '"]');
+
+                   
+                    var policyCount = partnerCard.find('.card-subtitle');
+                    var totalAmount = partnerCard.find('.card-text');
+
+                    
+                    var currentTotalAmount = parseFloat(totalAmount.text().split(' ')[3]);
+
+                    policyCount.text((currentPolicyCount + 1) + ' policies');
+                    totalAmount.text('Total Policy Amount: ' + (currentTotalAmount + parseFloat(data.amount)));
+
+                    $('#policyModal').modal('hide');
+                },
+                error: function (xhr, status, error) {
+                    alert('Error saving policy: ' + error); 
+                }
+            });
+        });
+    });
+</script>
+<style>
+    .highlight {
+        background-color: #f0f0f0;
+        font-weight: bold;
+    }
+</style>
+
